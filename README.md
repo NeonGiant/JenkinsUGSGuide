@@ -56,14 +56,14 @@ Later in this guide we will show how to use it and config it.
 - A p4 user to be used by Jenkins. By default, p4 users disconnect every 12h for security reasons. Your Jenkins user needs to be permanent, otherwise it will disconnect and builds will fail.
 
 - Global variables in Jenkins. Please, keep in mind that the paths in the image are generic. Adjust them to match your configuration
-![](https://github.com/BrunoRebaque/NeonGiant/blob/master/Images/JenkinsGuide/01.png)
+![](https://github.com/NeonGiant/JenkinsUGSGuide/tree/master/Images/JenkinsGuide/01.png)
 
 - A variable for the Lockable resource Plugin. 
 When a build is happening, you don’t want another one triggering. Specially if they do Get Latest from P4.
-![](https://github.com/BrunoRebaque/NeonGiant/blob/master/Images/JenkinsGuide/02.png)
+![](https://github.com/NeonGiant/JenkinsUGSGuide/tree/master/Images/JenkinsGuide/02.png)
 
 	Once it’s added, you can check on the state of the lockable resources by clicking the highlighted icon in the image (usually on the left column in the Jenkins Home Page)
-![](https://github.com/BrunoRebaque/NeonGiant/blob/master/Images/JenkinsGuide/03.png)
+![](https://github.com/NeonGiant/JenkinsUGSGuide/tree/master/Images/JenkinsGuide/03.png)
 
 
 #### 1.2.Compile the Editor and the project for distribution
@@ -76,42 +76,42 @@ This section will describe how that job configuration looks like in our Jenkins 
 ##### 1.2.1.Discard old builds 
 Builds can take a lot of space and you probably don’t need lots of them stored.
 
-![](https://github.com/BrunoRebaque/NeonGiant/blob/master/Images/JenkinsGuide/04.png)
+![](https://github.com/NeonGiant/JenkinsUGSGuide/tree/master/Images/JenkinsGuide/04.png)
 
 ##### 1.2.2.Mark this Job as lockable
 
-![](https://github.com/BrunoRebaque/NeonGiant/blob/master/Images/JenkinsGuide/05.png)
+![](https://github.com/NeonGiant/JenkinsUGSGuide/tree/master/Images/JenkinsGuide/05.png)
 
 ##### 1.2.3.Setup how Jenkins P4 user should behave with this job
 We set **Clobber** to avoid warnings when getting assets that are open and **RMDIR** so it deletes empty folders if needed.
 
 *NEON-TIP:* we strongly recommend to setup a virtual stream that filters out all the art source files in P4. This would be all the FBX, PSD and any other files artists use to create content they will later import to UE4. You don’t need that for builds and it can take insane amounts of space and time when getting latest, specially the first time. This virtual stream would be the one you have to setup in **Stream**
 
-![](https://github.com/BrunoRebaque/NeonGiant/blob/master/Images/JenkinsGuide/06.png)
+![](https://github.com/NeonGiant/JenkinsUGSGuide/tree/master/Images/JenkinsGuide/06.png)
 
 ##### 1.2.4.It’s important that you mark this as sync only and that you populate the have list of P4
 Otherwise you will encounter problems where files are missing or getting twice when already in the latest revision. The quiet P4 messages is to keep the log clean (more on that later). 
 
-![](https://github.com/BrunoRebaque/NeonGiant/blob/master/Images/JenkinsGuide/07.png)
+![](https://github.com/NeonGiant/JenkinsUGSGuide/tree/master/Images/JenkinsGuide/07.png)
 
 ##### 1.2.5.Enable parallel sync in your P4 server/clients. 
 **Pro:** it’s much much faster to sync
 
 **Con:** it can be tricky to know if a file failed since the log will not say anything but “syncing with 10 threads” instead of printing the currently sync file
 
- ![](https://github.com/BrunoRebaque/NeonGiant/blob/master/Images/JenkinsGuide/08.png)
+ ![](https://github.com/NeonGiant/JenkinsUGSGuide/tree/master/Images/JenkinsGuide/08.png)
 
 ##### 1.2.6.Polling
 This is the part that tells Jenkins “hey, every N minutes, check if any of this file types have been submitted to P4 and, if yes, start this job and create a new build”. This is fundamental to create new builds when there are source code changes. This information will be used by UGS (more on that later).
 
 It's very important to exclude the Jenkins' P4 user. This user will upload binaries to your P4 server for distribution. If you don't ignore it, it will trigger a new build every time a build is done. 
 
-![](https://github.com/BrunoRebaque/NeonGiant/blob/master/Images/JenkinsGuide/09.png)
+![](https://github.com/NeonGiant/JenkinsUGSGuide/tree/master/Images/JenkinsGuide/09.png)
 
 ##### 1.2.7.Build
 The most important part. Here we run 2 commands: one is for UGS (explained in the UGS chapter), the other one to actually do the build. The second command is the bare minimum yo need.
 
-![](https://github.com/BrunoRebaque/NeonGiant/blob/master/Images/JenkinsGuide/10.png)
+![](https://github.com/NeonGiant/JenkinsUGSGuide/tree/master/Images/JenkinsGuide/10.png)
     
     P:\workspace\Job\Engine\Build\BatchFiles\RunUAT.bat BuildGraph -Script=P:/workspace/Job/Engine/Build/Graph/Examples/BuildEditor_Tools_Game.xml -Target="Submit To Perforce for UGS" -set:EditorTarget=UE4Editor -set:GameTargets=MyProjectEditor -set:ProjectFile=p:\workspace\Job\MyProject\MyProject.uproject -set:ArchiveStream=//depot/main -set:Licensee=true -buildmachine -p4 -submit
 
@@ -135,18 +135,18 @@ Let's explain all this params:
 ##### 1.2.8.Post-Build Actions
 What to do after the build is done and what to do if it fails. In this case, both actions refer to UGS. We will come back to this in the UGS section.
 
-![](https://github.com/BrunoRebaque/NeonGiant/blob/master/Images/JenkinsGuide/11.png)
+![](https://github.com/NeonGiant/JenkinsUGSGuide/tree/master/Images/JenkinsGuide/11.png)
 
 ##### 1.2.9.Slack Notifications [Optional]
 Jenkins has support for Slack and it’s very convenient to inform about problems with the builds. More info [here](https://medium.com/appgambit/integrating-jenkins-with-slack-notifications-4f14d1ce9c7a)
 
 This is how it looks in our Slack channel for Jenkins.
 
-![](https://github.com/BrunoRebaque/NeonGiant/blob/master/Images/JenkinsGuide/13.png)
+![](https://github.com/NeonGiant/JenkinsUGSGuide/tree/master/Images/JenkinsGuide/13.png)
 
 In the example, it says “still Failing” because it was the 2nd time in a row that failed. The “Open” link takes you directly to the summary in Jenkins for said Job. You can add as much info in the message as you want (CL that failed, user etc).
 
-![](https://github.com/BrunoRebaque/NeonGiant/blob/master/Images/JenkinsGuide/12.png)
+![](https://github.com/NeonGiant/JenkinsUGSGuide/tree/master/Images/JenkinsGuide/12.png)
 
 
 #### 1.3.Build Pipelines and packaged builds
@@ -165,7 +165,7 @@ We run this pipeline every night automatically so, when we get to the office in 
 
 This is how it looks when set up and running:
 
-![](https://github.com/BrunoRebaque/NeonGiant/blob/master/Images/JenkinsGuide/14.png)
+![](https://github.com/NeonGiant/JenkinsUGSGuide/tree/master/Images/JenkinsGuide/14.png)
 
 When you click the **Run** button (top left in the icons line), the 1st build will trigger, once it’s finished, the second one and so on. 
 Green if they succeed, red if they don’t. 
@@ -175,33 +175,33 @@ Green if they succeed, red if they don’t.
 	- There’s no polling. We schedule this job on a fixed time
 	- Build triggers periodically (the time syntax in Jenkins is not user friendly, you probably want to check their online documentation about it)
 	
-	![](https://github.com/BrunoRebaque/NeonGiant/blob/master/Images/JenkinsGuide/15.png)
+	![](https://github.com/NeonGiant/JenkinsUGSGuide/tree/master/Images/JenkinsGuide/15.png)
 
 	- The command used is almost the same as the previous one, but this time we use a re-build BuildGraph
 	`%ROOT%\Engine\Build\BatchFiles\RunUAT.bat BuildGraph -Script=P:/workspace/Job/Engine/Build/Graph/Examples/BuildEditor_Tools_Game_Rebuild.xml -set:EditorTarget=UE4Editor -set:GameTargets=MyProject -set:ProjectFile=p:\workspace\Job\MyProject\MyProject.uproject -target="Default Agent" -set:Licensee=true -buildmachine -p4 -submit`
 
 	- **Post-Build Actions:** here’s where we tell it what to do next in regards of the pipeline
 	
-	![](https://github.com/BrunoRebaque/NeonGiant/blob/master/Images/JenkinsGuide/16.png)
+	![](https://github.com/NeonGiant/JenkinsUGSGuide/tree/master/Images/JenkinsGuide/16.png)
 
 	- Now, you need to actually configure the Pipeline so you can view it. 
 In Jenkins Home, this “**+**” in the tabs area to ad a new tab we will use for the **Pipeline View**
 
-	![](https://github.com/BrunoRebaque/NeonGiant/blob/master/Images/JenkinsGuide/17.png)
+	![](https://github.com/NeonGiant/JenkinsUGSGuide/tree/master/Images/JenkinsGuide/17.png)
 
 	- Then add a new **Pipeline View**, set a name and hit **Ok**
 	
-	![](https://github.com/BrunoRebaque/NeonGiant/blob/master/Images/JenkinsGuide/18.png)
+	![](https://github.com/NeonGiant/JenkinsUGSGuide/tree/master/Images/JenkinsGuide/18.png)
 
 	- In the next window, all you are required to do is to select an initial job
 	
 	
-	![](https://github.com/BrunoRebaque/NeonGiant/blob/master/Images/JenkinsGuide/19.png)
+	![](https://github.com/NeonGiant/JenkinsUGSGuide/tree/master/Images/JenkinsGuide/19.png)
 
 	
 	- Your **Pipeline View** will automatically look for the **Post Build Actions** in that initial job and add all the “chained” jobs it finds, showing the state of the last run builds for each
 
-	![](https://github.com/BrunoRebaque/NeonGiant/blob/master/Images/JenkinsGuide/20.png)
+	![](https://github.com/NeonGiant/JenkinsUGSGuide/tree/master/Images/JenkinsGuide/20.png)
 
 	
 ### 3.How to UGS
